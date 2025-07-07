@@ -37,6 +37,8 @@ public class CostHandler {
 
     public List<String> calculateTheExpenses(List<Cost> expenses) {
         List<String> dealings = new ArrayList<>();
+        Map<String, Map<String,Integer>> debits = new HashMap<>();
+
         for (Cost expense : expenses) {
             String payer = expense.getPayer();
             int amount = expense.getAmount();
@@ -46,8 +48,19 @@ public class CostHandler {
 
             for (String member : members) {
                 if (!member.equals(payer)) {
-                    dealings.add(member + " pays " + payer + " " + share);
+                    debits.computeIfAbsent(member , Z-> new HashMap<>()).merge(payer,share,Integer::sum);
                 }
+            }
+        }
+
+        for(Map.Entry<String, Map<String,Integer>> debitorEntry : debits.entrySet())
+        {
+            String debitors = debitorEntry.getKey();
+            for(Map.Entry<String,Integer> creditorEntry : debitorEntry.getValue().entrySet()){
+                String creditor = creditorEntry.getKey();
+                int totalAmount = creditorEntry.getValue();
+
+                dealings.add(debitors+" pays "+creditor+" "+totalAmount);
             }
         }
         return dealings;
